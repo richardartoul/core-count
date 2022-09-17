@@ -2,6 +2,9 @@ var numVCPUs = 150000
 var numVCPUsPerServer = 96
 var numServers = numVCPUs/numVCPUsPerServer;
 var numServersPerRack = 42;
+if (numServers < 500) {
+    numServersPerRack = 14;
+}
 var numRacks = numServers/numServersPerRack;
 var rackWidth = 1;
 var rackHeight = 5;
@@ -14,13 +17,13 @@ var numLightsPerServer = 2;
 var numPortsPerServer = 3;
 var lightDiameter = 0.05;
 var totalRackSpace = numRacks * rackDepth*rackWidth*10;
-var minTotalRackSpace = 100;
+var minTotalRackSpace = 10;
 if (minTotalRackSpace > totalRackSpace) {
     totalRackSpace = minTotalRackSpace;
 }
 
-var maxRacksZ = 30;
-var maxRacksX = 1;
+var maxRacksZ = 20;
+// var maxRacksX = 1;
 
 var canvas = document.getElementById("renderCanvas");
 
@@ -45,7 +48,7 @@ var createScene = function () {
     // This creates and positions a free camera (non-mesh)
     var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(20, 10, -10), scene);
     // var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0.75, 20, new BABYLON.Vector3(0, 0, 0), scene);
-    // camera.setTarget(BABYLON.Vector3.Zero());
+    camera.setTarget(BABYLON.Vector3.Zero());
 
 
     BABYLON.ArcRotateCamera.prototype.spinTo = function (whichprop, targetval, speed) {
@@ -165,21 +168,26 @@ var createScene = function () {
         redLight: redLightBuilder,
     };
 
+    numRows = numRacks/maxRacksZ;
     var numServersRemaining = numServers;
-    for (var i = 0; i < numRacks; i++) {
-        numServersThisRack = numServersPerRack;
-        if (numServersRemaining < numServersThisRack) {
-            numServersThisRack = numServersRemaining;
+    var numRacksRemaining = numRacks;
+    for (var i = 0; i < numRows; i++) {
+        for (var j = 0; j < maxRacksZ && numRacksRemaining > 0; j++) {
+            numServersThisRack = numServersPerRack;
+            if (numServersRemaining < numServersThisRack) {
+                numServersThisRack = numServersRemaining;
+            }
+            renderRack(scene, builders, j*rackWidth*2, i*rackDepth*2, 0, numServersThisRack)
+            numServersRemaining-=numServersThisRack;
+            numRacksRemaining--;
         }
-        renderRack(scene, builders, i*rackWidth*2, 0, 0, numServersThisRack)
-        numServersRemaining-=numServersThisRack;
     }
 
     // Our built-in 'ground' shape.
     var ground = BABYLON.MeshBuilder.CreateGround("ground", { width: totalRackSpace, height: totalRackSpace }, scene);
     var groundMaterial = new BABYLON.StandardMaterial("ground", scene);
     groundMaterial.diffuseColor = BABYLON.Color3.White();
-    groundMaterial.emissiveColor = BABYLON.Color3.White();
+    // groundMaterial.emissiveColor = BABYLON.Color3.White();
     ground.material=groundMaterial;
     groundMaterial.freeze();
 
