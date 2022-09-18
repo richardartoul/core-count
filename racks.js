@@ -101,13 +101,13 @@ var createScene = function () {
     var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
     light.intensity = 0.7;
 
-    renderScene(scene, numCores);
+    renderScene(scene);
 
     scene.skipPointerMovePicking = true;
     return scene;
 };
 
-function renderScene(scene, numCores) {
+function renderScene(scene) {
     var highlight = new BABYLON.HighlightLayer("highlight", scene);
     highlight.innerGlow = false;
 
