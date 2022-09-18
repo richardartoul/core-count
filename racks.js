@@ -8,6 +8,7 @@ if (numServers < 500) {
     numServersPerRack = 14;
 }
 numServersPerRack = params["numServersPerRack"] ? params["numServersPerRack"] : numServersPerRack;
+
 var numRacks = numServers / numServersPerRack;
 var rackWidth = 1;
 var rackHeight = 5;
@@ -15,16 +16,20 @@ var rackDepth = 2;
 var serverWidth = rackWidth * 0.9;
 var portWidth = serverWidth / 20;
 var serverHeight = (rackHeight / numServersPerRack);
-var numLightsPerServer = 2;
-if (params["renderLights"] === "false") {
-    numLightsPerServer = 0;
-}
 
+var numLightsPerServer = 2;
 var numPortsPerServer = 3;
 if (numCores > 100000) {
     numLightsPerServer = 0;
     numPortsPerServer = 0;
 }
+if (params["renderLights"] === "false") {
+    numLightsPerServer = 0;
+}
+if (params["renderLights"] === "true") {
+    numLightsPerServer = 2;
+}
+
 renderServers = true;
 if (numCores > 5000000) {
     renderServers = false;
