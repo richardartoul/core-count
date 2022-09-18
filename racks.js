@@ -16,6 +16,10 @@ var serverWidth = rackWidth * 0.9;
 var portWidth = serverWidth / 20;
 var serverHeight = (rackHeight / numServersPerRack);
 var numLightsPerServer = 2;
+if (params["renderLights"] === "false") {
+    numLightsPerServer = 0;
+}
+
 var numPortsPerServer = 3;
 if (numCores > 100000) {
     numLightsPerServer = 0;

@@ -1,9 +1,14 @@
 function onChange() {
-    const newURL = generateRacksURL({
+    var urlData = {
         "numCores": document.getElementById("numCores").value,
         "numCoresPerServer": document.getElementById("numCoresPerServer").value,
         "numServersPerRack": document.getElementById("numServersPerRack").value,
-    })
+    };
+    if (document.getElementById("renderLights").value != "default") {
+        urlData["renderLights"] = document.getElementById("renderLights").value === "enabled" ? true : false;
+    }
+
+    const newURL = generateRacksURL(urlData)
     document.getElementById("visualization").src = newURL;
 
     const shareURL = "https://richardartoul.github.io/core-count/" + newURL;;
@@ -18,6 +23,9 @@ document.getElementById("numCoresPerServer").addEventListener("change", function
     onChange();
 });
 document.getElementById("numServersPerRack").addEventListener("change", function() {
+    onChange();
+});
+document.getElementById("renderLights").addEventListener("change", function() {
     onChange();
 });
 

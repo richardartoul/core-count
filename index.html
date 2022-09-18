@@ -37,6 +37,12 @@
         <input type="number" id="numCoresPerServer" name="numCoresPerServer" value="96" min="1" max="1024"/>
         #Servers/Rack:
         <input type="number" id="numServersPerRack" name="numServersPerRack" value="42" min="1" max="128"/>
+        Render Lights (Disable to improve render performance):
+        <select name="renderLights" id="renderLights">
+            <option value="default">default</option>
+            <option value="enabled">enabled</option>
+            <option value="disabled">disabled</option>
+          </select>
     </div>
     <script type='text/javascript' src='./main.js'></script>
 </body>
