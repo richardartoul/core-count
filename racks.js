@@ -31,7 +31,7 @@ if (params["renderLights"] === "true") {
 }
 
 renderServers = true;
-if (numCores > 5000000) {
+if (numCores > 1000000) {
     renderServers = false;
 }
 var lightDiameter = 0.05;
