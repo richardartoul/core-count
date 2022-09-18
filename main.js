@@ -18,20 +18,22 @@ var portWidth = serverWidth / 20;
 var serverHeight = (rackHeight/numServersPerRack);
 var numLightsPerServer = 2;
 var numPortsPerServer = 3;
-if (numCores > 150000) {
+if (numCores > 100000) {
     numLightsPerServer = 0;
-}
-if (numCores > 1000000) {
     numPortsPerServer= 0;
 }
+renderServers = true;
+if (numCores > 5000000) {
+    renderServers = false;
+}
 var lightDiameter = 0.05;
-var totalRackSpace = numRacks *10;
-var minTotalRackSpace = 10;
+var totalRackSpace = numRacks*4;
+var minTotalRackSpace = 500;
 if (minTotalRackSpace > totalRackSpace) {
     totalRackSpace = minTotalRackSpace;
 }
 var totalSkyboxSpace = totalRackSpace;
-var minSkyboxSpace = 100;
+var minSkyboxSpace = 500    ;
 if (minSkyboxSpace > totalSkyboxSpace) {
     totalSkyboxSpace = minSkyboxSpace;
 }
@@ -61,7 +63,52 @@ var createScene = function () {
     var scene = new BABYLON.Scene(engine);
 
     // This creates and positions a free camera (non-mesh)
-    var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(20, 10, -10), scene);
+    // var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(20, 10, -10), scene);
+    var cameraHeight = 15;
+    if (numRacks > 100) {
+        cameraHeight = 25;
+        cameraHeight += numRacks*0.1;
+    } else {
+        cameraHeight += numRacks;
+    }
+    // if (numRacks > 1000) {
+    //     maxRacksZ = 50;
+    // }
+    maxRacksZ = 10;
+    if (numRacks > 100) {
+        maxRacksZ = 50;
+    }
+    if (numRacks > 1000) {
+        maxRacksZ = 100;
+    }
+
+    var camera = new BABYLON.ArcRotateCamera("camera1", - Math.PI, 5 * Math.PI / 12, cameraHeight, new BABYLON.Vector3(0, 0, 0), scene);
+
+    radiusDirection = 1;
+    initRadiusSpeed = 0.1;
+    radiusSpeed = initRadiusSpeed;
+    engine.runRenderLoop(function () {
+		camera.alpha += 0.003;
+        radiusSpeed += 0.001;
+        if (radiusSpeed > initRadiusSpeed) {
+            radiusSpeed = initRadiusSpeed;
+        }
+        // if (radiusDirection === 1) {
+        //     camera.radius+=radiusSpeed;
+        //     // radiusOffset+=radiusSpeed;
+        // } else {
+        //     camera.radius-=radiusSpeed;
+        //     // radiusOffset -=radiusSpeed;
+        // }
+        if (camera.radius > cameraHeight*1.25) {
+            radiusDirection = -1;
+            radiusSpeed = 0;
+        }
+        if (camera.radius < cameraHeight*0.75) {
+            radiusDirection = 1;
+            radiusSpeed = 0;
+        }
+	});	
     // var camera = new BABYLON.ArcRotateCamera("Camera", 0, 0.75, 20, new BABYLON.Vector3(0, 0, 0), scene);
     camera.setTarget(BABYLON.Vector3.Zero());
 
@@ -132,13 +179,35 @@ var createScene = function () {
 };
 
 function renderScene(scene, numCores) {
+    // var music = new BABYLON.Sound("music", "mixkit-deep-urban-623.mp3", scene, null, {
+    //     loop: true,
+    //     autoplay: true
+    // });
+    
+    var highlight = new BABYLON.HighlightLayer("highlight", scene);
+    highlight.innerGlow=false;
+
     var rackBuilder = BABYLON.MeshBuilder.CreateBox("rack-builder", { width: rackWidth, height: rackHeight, depth: rackDepth, segments: 32 }, scene);
     var rackMaterial = new BABYLON.StandardMaterial("rackMaterial");
-    rackMaterial.diffuseColor = new BABYLON.Color3.Black();
+    if (renderServers) {
+        rackMaterial.diffuseColor = new BABYLON.Color3.Black();
+    } else {
+        rackMaterial.diffuseColor = new BABYLON.Color3.White();
+    }
     rackMaterial.metallic = 1.0
     rackMaterial.freeze();
     rackBuilder.material = rackMaterial;
-    rackBuilder.doNotSyncBoundingInfo = true;
+    if (!renderServers) {
+        highlight.addMesh(rackBuilder, BABYLON.Color3.White(), {isStroke: true, alphaBlendingMode: 0});
+    }
+    // rackBuilder.renderOutline = true;
+    // rackBuilder.outlineColor = BABYLON.Color3.White();
+    // rackBuilder.outlineWidth = 0.1;
+    rackBuilder.edgesShareWithInstances = true;
+    // rackBuilder.enableEdgesRendering();	
+    // rackBuilder.edgesWidth = 4.0;
+    // rackBuilder.edgesColor = BABYLON.Color3.Green();
+    // rackBuilder.doNotSyncBoundingInfo = true;
     rackBuilder.freezeWorldMatrix();
 
     var serverBuilder = BABYLON.MeshBuilder.CreateBox("server-builder", { width: serverWidth, height: serverHeight, depth: rackDepth * 0.95, segments: 32 }, scene);
@@ -204,7 +273,16 @@ function renderScene(scene, numCores) {
             if (numServersRemaining < numServersThisRack) {
                 numServersThisRack = numServersRemaining;
             }
-            renderRack(scene, builders, j*rackWidth*2, i*rackDepth*2, 0, numServersThisRack)
+
+            rackX = j*rackWidth*2;
+            rackZ = i*rackDepth*2;
+            if (i%2==1) {
+                rackZ = -rackZ;
+            }
+            if (j%2==1) {
+                rackX = -rackX;
+            }
+            renderRack(scene, builders, rackX, rackZ, 0, numServersThisRack)
             numServersRemaining-=numServersThisRack;
             numRacksRemaining--;
         }
@@ -265,12 +343,6 @@ initFunction().then(() => {
     sceneToRender = scene
 });
 
-document.getElementById('numCores').addEventListener("change", function (evt) {
-    numCores = document.getElementById('numCores').value;
-    renderScene(sceneToRender, numCores);
-    // window.engine.dispose();
-    // window.initFunction();
-}, false);
 
 // Resize
 window.addEventListener("resize", function () {
@@ -296,7 +368,7 @@ function renderRack(scene, builders, x, z, rotation, numServers) {
 
     var lights = [];
 
-    for (var i = 0; i < numServers; i++) {
+    for (var i = 0; i < numServers && renderServers; i++) {
         var serverName = rackName + "-server-"+i;
         var server = builders.server.createInstance(serverName);
         server.parent = CoT;
