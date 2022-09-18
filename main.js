@@ -1,5 +1,7 @@
-numCores = document.getElementById('numCores').value
-var numCores = 1500
+const urlSearchParams = new URLSearchParams(window.location.search);
+const params = Object.fromEntries(urlSearchParams.entries());
+console.log(params);
+var numCores = params["numCores"] ? params["numCores"] : 150000;
 var numCoresPerServer = 96
 var numServers = numCores/numCoresPerServer;
 var numServersPerRack = 42;
@@ -16,12 +18,24 @@ var portWidth = serverWidth / 20;
 var serverHeight = (rackHeight/numServersPerRack);
 var numLightsPerServer = 2;
 var numPortsPerServer = 3;
+if (numCores > 150000) {
+    numLightsPerServer = 0;
+}
+if (numCores > 1000000) {
+    numPortsPerServer= 0;
+}
 var lightDiameter = 0.05;
-var totalRackSpace = numRacks * rackDepth*rackWidth*10;
+var totalRackSpace = numRacks *10;
 var minTotalRackSpace = 10;
 if (minTotalRackSpace > totalRackSpace) {
     totalRackSpace = minTotalRackSpace;
 }
+var totalSkyboxSpace = totalRackSpace;
+var minSkyboxSpace = 100;
+if (minSkyboxSpace > totalSkyboxSpace) {
+    totalSkyboxSpace = minSkyboxSpace;
+}
+
 var maxRacksZ = 20;
 // var maxRacksX = 1;
 
@@ -223,7 +237,7 @@ function renderScene(scene, numCores) {
 	gridMaterial.mainColor = new BABYLON.Color3(0, 0.05, 0.2);
 	gridMaterial.lineColor = new BABYLON.Color3(0, 1.0, 1.0);	
 	gridMaterial.backFaceCulling = false;
-    var skySphere = BABYLON.Mesh.CreateSphere("skySphere", 30, 110, scene);
+    var skySphere = BABYLON.Mesh.CreateSphere("skySphere", 30, totalSkyboxSpace, scene);
 	skySphere.material = gridMaterial;
     ground.material=gridMaterial;
 }
@@ -333,36 +347,39 @@ function renderRack(scene, builders, x, z, rotation, numServers) {
     }
 
     var renderIdx = 0;
-    scene.registerBeforeRender(function () {
-        renderIdx++;
-        if (renderIdx % 20 == 0) {
-            lights.forEach(function (currLight) {
-                if (Math.random() > 0.25) {
-                    return;
-                }
-
-                var rand = Math.random();
-                switch (true) {
-                    case rand < 0.8:
-                        currLight.green.isVisible = true;
-                        currLight.black.isVisible = false;
-                        currLight.red.isVisible = false;
-                        break;
-                    case rand < 0.98:
-                        currLight.green.isVisible = false;
-                        currLight.black.isVisible = true;
-                        currLight.red.isVisible = false;
-                        break;
-                    default:
-                        currLight.green.isVisible = false;
-                        currLight.black.isVisible = false;
-                        currLight.red.isVisible = true;
-                        break;
-                }
-            });
-
-        }
-    })
+    if (numLightsPerServer > 0) {
+        scene.registerBeforeRender(function () {
+            renderIdx++;
+            if (renderIdx % 20 == 0) {
+                lights.forEach(function (currLight) {
+                    if (Math.random() > 0.25) {
+                        return;
+                    }
+    
+                    var rand = Math.random();
+                    switch (true) {
+                        case rand < 0.8:
+                            currLight.green.isVisible = true;
+                            currLight.black.isVisible = false;
+                            currLight.red.isVisible = false;
+                            break;
+                        case rand < 0.98:
+                            currLight.green.isVisible = false;
+                            currLight.black.isVisible = true;
+                            currLight.red.isVisible = false;
+                            break;
+                        default:
+                            currLight.green.isVisible = false;
+                            currLight.black.isVisible = false;
+                            currLight.red.isVisible = true;
+                            break;
+                    }
+                });
+    
+            }
+        });
+    }
+    
 
     CoT.rotation.y = rotation;
 }
