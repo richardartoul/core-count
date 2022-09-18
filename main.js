@@ -1,7 +1,7 @@
 const urlSearchParams = new URLSearchParams(window.location.search);
 const params = Object.fromEntries(urlSearchParams.entries());
 console.log(params);
-var numCores = params["numCores"] ? params["numCores"] : 150000;
+var numCores = params["numCores"] ? params["numCores"] : 25000;
 var numCoresPerServer = 96
 var numServers = numCores/numCoresPerServer;
 var numServersPerRack = 42;
