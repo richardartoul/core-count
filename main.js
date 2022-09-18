@@ -1,6 +1,7 @@
-var numVCPUs = 150000
-var numVCPUsPerServer = 96
-var numServers = numVCPUs/numVCPUsPerServer;
+numCores = document.getElementById('numCores').value
+var numCores = 1500
+var numCoresPerServer = 96
+var numServers = numCores/numCoresPerServer;
 var numServersPerRack = 42;
 if (numServers < 500) {
     numServersPerRack = 14;
@@ -21,7 +22,6 @@ var minTotalRackSpace = 10;
 if (minTotalRackSpace > totalRackSpace) {
     totalRackSpace = minTotalRackSpace;
 }
-
 var maxRacksZ = 20;
 // var maxRacksX = 1;
 
@@ -29,9 +29,10 @@ var canvas = document.getElementById("renderCanvas");
 
 var startRenderLoop = function (engine, canvas) {
     engine.runRenderLoop(function () {
-        if (sceneToRender && sceneToRender.activeCamera) {
+        // if (sceneToRender && sceneToRender.activeCamera) {
+        // console.log("rendering")
             sceneToRender.render();
-        }
+        // }
     });
 }
 
@@ -63,6 +64,7 @@ var createScene = function () {
 
     // camera.position.y = 10;
     scene.registerBeforeRender(function () {
+        
     //     camera.spinTo("radius", 250, 50);
     //    camera.spinTo("alpha", Math.PI/2, 50);
     //    camera.spinTo("beta", 1.05, 50);
@@ -105,6 +107,17 @@ var createScene = function () {
     console.log(numRacks, numServers);
     
 
+    renderScene(scene, numCores);
+    
+    
+
+    // scene.freezeActiveMeshes();
+    scene.skipPointerMovePicking = true;
+    // scene.freezeActiveMeshes();
+    return scene;
+};
+
+function renderScene(scene, numCores) {
     var rackBuilder = BABYLON.MeshBuilder.CreateBox("rack-builder", { width: rackWidth, height: rackHeight, depth: rackDepth, segments: 32 }, scene);
     var rackMaterial = new BABYLON.StandardMaterial("rackMaterial");
     rackMaterial.diffuseColor = new BABYLON.Color3.Black();
@@ -185,19 +198,38 @@ var createScene = function () {
 
     // Our built-in 'ground' shape.
     var ground = BABYLON.MeshBuilder.CreateGround("ground", { width: totalRackSpace, height: totalRackSpace }, scene);
-    var groundMaterial = new BABYLON.StandardMaterial("ground", scene);
-    groundMaterial.diffuseColor = BABYLON.Color3.White();
-    // groundMaterial.emissiveColor = BABYLON.Color3.White();
-    ground.material=groundMaterial;
-    groundMaterial.freeze();
+    // var groundMaterial = new BABYLON.GridMaterial("ground", scene);
+    // // groundMaterial.diffuseColor = BABYLON.Color3.White();
+    // groundMaterial.emissiveColor = BABYLON.Color3.Green();
+    // groundMaterial.mainColor = BABYLON.Color3.Black();
+    // // groundMaterial.lineColor = BABYLON.Color3.Green();
+    // ground.material=groundMaterial;
+    // groundMaterial.freeze();
+    // var groundMaterial = new BABYLON.GridMaterial("groundMaterial", scene);
+	// groundMaterial.majorUnitFrequency = 5;
+	// groundMaterial.minorUnitVisibility = 0.45;
+	// groundMaterial.gridRatio = 2;
+	// groundMaterial.backFaceCulling = false;
+	// groundMaterial.mainColor = new BABYLON.Color3(1, 1, 1);
+	// groundMaterial.lineColor = new BABYLON.Color3(1.0, 1.0, 1.0);
+	// groundMaterial.opacity = 0.9999;
+    // groundMaterial.freeze();
+    // ground.material=groundMaterial;
 
-    // scene.freezeActiveMeshes();
-    scene.skipPointerMovePicking = true;
-    // scene.freezeActiveMeshes();
-    return scene;
-};
+    var gridMaterial = new BABYLON.GridMaterial("gridMaterial", scene);
+	gridMaterial.majorUnitFrequency = 6;
+	gridMaterial.minorUnitVisibility = 0.43;
+	gridMaterial.gridRatio = 0.5;
+	gridMaterial.mainColor = new BABYLON.Color3(0, 0.05, 0.2);
+	gridMaterial.lineColor = new BABYLON.Color3(0, 1.0, 1.0);	
+	gridMaterial.backFaceCulling = false;
+    var skySphere = BABYLON.Mesh.CreateSphere("skySphere", 30, 110, scene);
+	skySphere.material = gridMaterial;
+    ground.material=gridMaterial;
+}
 
 window.initFunction = async function () {
+    console.log("init", numCores);
     var asyncEngineCreation = async function () {
         try {
             return createDefaultEngine();
@@ -213,9 +245,18 @@ window.initFunction = async function () {
     window.scene = createScene();
 };
 
+
+
 initFunction().then(() => {
     sceneToRender = scene
 });
+
+document.getElementById('numCores').addEventListener("change", function (evt) {
+    numCores = document.getElementById('numCores').value;
+    renderScene(sceneToRender, numCores);
+    // window.engine.dispose();
+    // window.initFunction();
+}, false);
 
 // Resize
 window.addEventListener("resize", function () {
