@@ -19,7 +19,7 @@ var serverHeight = (rackHeight / numServersPerRack);
 
 var numLightsPerServer = 2;
 var numPortsPerServer = 3;
-if (numCores > 100000) {
+if (numRacks >= 25) {
     numLightsPerServer = 0;
     numPortsPerServer = 0;
 }
@@ -31,7 +31,7 @@ if (params["renderLights"] === "true") {
 }
 
 renderServers = true;
-if (numCores > 1000000) {
+if (numRacks > 1000) {
     renderServers = false;
 }
 var lightDiameter = 0.05;
