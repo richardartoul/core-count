@@ -10,7 +10,7 @@ function onChange() {
     console.log(document.getElementById("renderServers").value);
     document.getElementById("visualization").src = newURL;
 
-    const shareURL = "https://richardartoul.github.io/rack-visualizer/" + newURL;;
+    const shareURL = "https://richardartoul.github.io/core-count/" + newURL;;
     document.getElementById("shareURL").href = shareURL;
     document.getElementById("shareURL").textContent = shareURL;
 }
