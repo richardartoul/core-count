@@ -3,6 +3,7 @@ const params = Object.fromEntries(urlSearchParams.entries());
 var numCores = params["numCores"] ? params["numCores"] : 5000;
 var numCoresPerServer = params["numCoresPerServer"] ? params["numCoresPerServer"] : 64;
 var numServers = numCores / numCoresPerServer;
+numServers = params["numServers"] ? params["numServers"] : numServers;
 var numServersPerRack = 21;
 numServersPerRack = params["numServersPerRack"] ? params["numServersPerRack"] : numServersPerRack;
 
